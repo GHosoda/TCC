@@ -51,9 +51,8 @@ class Interface(Ui_MainWindow):
                 'Deve preencher corretamente o local do arquivo e o nome do Operador')
             msg.exec()
             return
-        print(f'{inputs} \n{abas}\n{checkboxes_config}\n{checkboxes_results}\n{comboboxes}\n{dia}\nPontos: {pontos}')
+        #print(f'{inputs} \n{abas}\n{checkboxes_config}\n{checkboxes_results}\n{comboboxes}\n{dia}\nPontos: {pontos}')
         saida = FEIMC(inputs, abas, checkboxes_config, comboboxes, dia, pontos)
-        print(saida)
 
     def set_comboboxes(self):
         maquinas = pd.read_csv('Maquinas\maquinas.csv', sep=';', index_col=None)
@@ -72,6 +71,9 @@ class Interface(Ui_MainWindow):
 
         dia = (int(x) for x in str(date.today()).split('-'))
         self.dateEdit.setDate(QDate(*dia))
+
+    def aba_abrir(self):
+        pass
 
     def nova_maquina(self):
         dicionario = {'id': ['MIT NOVA 5 cv 2'],
@@ -155,7 +157,6 @@ class FEIMC:
     def __init__(self, inputs, abas, checkboxes_config, comboboxes, dia, pontos, **kwargs):
         func = {'IEEE112_Metodo_A': funcoes.IEEE112_Metodo_A,
                 'IEEE112_Metodo_B': funcoes.IEEE112_Metodo_B}
-
         self.__arquivo = inputs['Arquivo']
         self.__pontos = pontos
         self.__funcao = func[comboboxes['Ensaio']]
@@ -166,32 +167,24 @@ class FEIMC:
         self.__bool_incertezas = checkboxes_config
         self.__temperatura = 25
         self.__dia = dia
-        self.dataframes(**kwargs)
-        self.incertezas()
-        self.sep_dataframes()
-        self.__resultado = self.calculo(**kwargs)
+        self.dataframes(inputs, abas, **kwargs)
+        #self.incertezas()
+        #self.sep_dataframes()
+        #self.__resultado = self.calculo(**kwargs)
 
-    # def __init__(self, arquivo, equipamentos: dict, bool_incertezas: dict, pontos: int, funcao, temperatura=25, **kwargs):
-    #    self.__arquivo = arquivo
-    #    self.__pontos = pontos
-    #    self.__equipamentos = equipamentos
-    #    self.__funcao = funcao
-    #    self.__bool_incertezas = bool_incertezas
-    #    self.__temperatura = temperatura
-    #    self.dataframes(**kwargs)
-    #    self.incertezas()
-    #    self.sep_dataframes()
-    #    self.__resultado = self.calculo(**kwargs)
 
     @property
     def resultado(self):
         return self.__resultado
 
-    def dataframes(self, **kwargs):
+    def dataframes(self, inputs, abas, **kwargs):
         dfs = pd.read_excel(self.__arquivo, sheet_name=None)
         usadas = []
         dici = {}
 
+        print(inputs)
+        inputs = {key: value.split(';') for (key, value) in inputs.items()}
+        print(inputs)
         for chave, df in dfs.items():
             # Renomeando as colunas conforme padrão
             mapa_colunas = dict(zip(df.columns, df.columns))
@@ -218,7 +211,6 @@ class FEIMC:
                 df.at[row, :] = dic_equip.equipamentos(df.loc[row, :].to_dict(
                 ), self.__equipamentos, self.__bool_incertezas, self.__pontos)
             dfs[sheet] = deepcopy(df)
-        print(dfs)
         self.__dfs = dfs
 
     def sep_dataframes(self):
@@ -227,7 +219,6 @@ class FEIMC:
         for chave in self.__dfs.keys():
             for i in range(self.__pontos+1):
                 dici[chave][i] = self.__dfs[chave].applymap(lambda x: x[i])
-        print(dici)
         self.__dfs = dici
 
     def calculo(self, **kwargs):
@@ -258,6 +249,7 @@ class Maquina:
 #           INÍCIO DO PROGRAMA
 ############################################################
 # %%
+
 if __name__ == '__main__':
     import sys
     app = QApplication(sys.argv)
@@ -265,3 +257,61 @@ if __name__ == '__main__':
     ui = Interface(Principal)
     Principal.show()
     sys.exit(app.exec_())
+'''
+
+if __name__ == '__main__':
+    inputs = {'Arquivo': u'Ensaios\Ensaio_Rendimento.xlsx',
+              'Corrente': '',
+              'Frequencia': '',
+              'Operador': 'Gui',
+              'Potencia': '',
+              'Resistencia': 'RS;RT;ST',
+              'RPM': '',
+              'Temperatura': '',
+              'Tensao': '',
+              'Torque': ''}
+    
+    abas = {'Ensaio_Vazio': '',
+            'Ensaio_Termico_Vazio': '',
+            'Ensaio_Carga': '',
+            'Ensaio_Termico_Carga': ''}
+    
+    checkboxes_config = {'Escalas': False,
+                         'Corrente': False,
+                         'Tensao': False,
+                         'Frequencia': False,
+                         'Potencia': False,
+                         'Resistencia': False,
+                         'RPM': False,
+                         'Temperatura': False,
+                         'Torque': False}
+    
+    checkboxes_results = {'boxplot': False,
+                          'desvio_padrao': False,
+                          'histograma': False,
+                          'histograma_nominal': False,
+                          'max_min': False,
+                          'media': False,
+                          'mediana': False,
+                          'moda': False,
+                          'quartis': False,
+                          'variancia': False,
+                          'violino': False}
+    
+    comboboxes = {'Ensaio': 'IEEE112_Metodo_A',
+                  'Maquina': 'MIT NOVA 5 cv 2',
+                  'Corrente': 'WT500',
+                  'Frequencia': 'WT500',
+                  'Potencia': 'WT500',
+                  'Resistencia': 'Agilent34410A',
+                  'RPM': 'HBMTB40',
+                  'Temperatura': 'YokogawaGP10',
+                  'Tensao': 'WT500',
+                  'Torque': 'HBMTB40'}
+    
+    dia = QDate(2022, 2, 19)
+    
+    pontos = 2
+
+    teste = FEIMC(inputs, abas, checkboxes_config, comboboxes, dia, pontos)
+'''
