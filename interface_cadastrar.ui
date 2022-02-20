@@ -68,7 +68,7 @@
          <string/>
         </property>
         <property name="pixmap">
-         <pixmap resource="TCC VSCode/Imagens/imagens.qrc">:/newPrefix/logo-feimc-escrita.png</pixmap>
+         <pixmap>:/newPrefix/logo-feimc-escrita.png</pixmap>
         </property>
         <property name="scaledContents">
          <bool>true</bool>
@@ -650,22 +650,5 @@
   <include location="TCC VSCode/Imagens/imagens.qrc"/>
   <include location="../../../Program Files (x86)/Qt Designer/TCC VSCode/Imagens/imagens.qrc"/>
  </resources>
- <connections>
-  <connection>
-   <sender>b_cm_cadastrar</sender>
-   <signal>clicked()</signal>
-   <receiver>Dialog</receiver>
-   <slot>close()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>235</x>
-     <y>518</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>235</x>
-     <y>269</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

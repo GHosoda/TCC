@@ -634,6 +634,21 @@
                  <enum>QFrame::Raised</enum>
                 </property>
                 <layout class="QVBoxLayout" name="verticalLayout_5">
+                 <property name="spacing">
+                  <number>0</number>
+                 </property>
+                 <property name="leftMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
                  <item>
                   <widget class="QScrollArea" name="scrollArea">
                    <property name="frameShape">
@@ -650,8 +665,8 @@
                      <rect>
                       <x>0</x>
                       <y>0</y>
-                      <width>296</width>
-                      <height>623</height>
+                      <width>314</width>
+                      <height>641</height>
                      </rect>
                     </property>
                     <layout class="QVBoxLayout" name="verticalLayout_10">
@@ -672,7 +687,24 @@
                       </widget>
                      </item>
                      <item>
-                      <widget class="QWidget" name="w_colunas" native="true"/>
+                      <widget class="QTableWidget" name="tw_colunas">
+                       <property name="sizeAdjustPolicy">
+                        <enum>QAbstractScrollArea::AdjustIgnored</enum>
+                       </property>
+                       <attribute name="horizontalHeaderStretchLastSection">
+                        <bool>true</bool>
+                       </attribute>
+                       <column>
+                        <property name="text">
+                         <string>Colunas Ensaio</string>
+                        </property>
+                       </column>
+                       <column>
+                        <property name="text">
+                         <string>Colunas Excel</string>
+                        </property>
+                       </column>
+                      </widget>
                      </item>
                      <item>
                       <widget class="Line" name="line_2">
@@ -695,6 +727,23 @@
                        <property name="text">
                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Atribuir Abas&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                        </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QTableWidget" name="tw_linhas">
+                       <attribute name="horizontalHeaderStretchLastSection">
+                        <bool>true</bool>
+                       </attribute>
+                       <column>
+                        <property name="text">
+                         <string>Abas Ensaio</string>
+                        </property>
+                       </column>
+                       <column>
+                        <property name="text">
+                         <string>Abas Excel</string>
+                        </property>
+                       </column>
                       </widget>
                      </item>
                      <item>

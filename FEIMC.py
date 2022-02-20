@@ -19,9 +19,7 @@ import statsmodels.api as sm
 from ui_interface import Ui_MainWindow
 from interface_cadastrar import Ui_Cadastro
 from interface_nova import Ui_MainWindow
-from PySide2.QtCore import *
-from PySide2.QtGui import *
-from PySide2.QtWidgets import *
+from PyQt6 import QtCore, QtGui, QtWidgets
 from datetime import date
 from pathlib import Path
 from inspect import getmembers, isfunction
@@ -51,7 +49,7 @@ class Interface(Ui_MainWindow):
     def rodar(self):
         inputs, abas, checkboxes_config, checkboxes_results, comboboxes, dia, pontos = self.dicionario_dados()
         if inputs['Arquivo'] == '' or inputs['Operador'] == '':
-            msg = QMessageBox()
+            msg = QtWidgets.QMessageBox()
             msg.setWindowTitle('Aviso')
             msg.setText(
                 'Deve preencher corretamente o local do arquivo e o nome do Operador')
@@ -76,18 +74,19 @@ class Interface(Ui_MainWindow):
         self.c_torque.addItems(['HBMTB40'])
 
         dia = (int(x) for x in str(date.today()).split('-'))
-        self.dateEdit.setDate(QDate(*dia))
+        self.dateEdit.setDate(QtCore.QDate(*dia))
 
     def indicar_col_abas(self):
         pass
 
     def aba_cadastrar(self):
-        cadastro = NovoCadastro(self)
-        cadastro.exec_()
+        cadastro = NovoCadastro(None)
+        cadastro.exec()
     
     def aba_abrir(self):
-        fname=QFileDialog.getOpenFileName(self, 'Open file', r'C:\Users\guilh\Desktop\TCC VSCode', 'Images (*.png, *.xmp *.jpg)')
-        self.filename.setText(fname[0])
+        fname=QtWidgets.QFileDialog.getOpenFileName(parent = None, filter = 'Excel Files(*xlsx)')
+        self.__filename = fname[0]
+        self.i_arquivo.setText(self.__filename)
 
     def nova_maquina(self):
         dicionario = {'id': ['MIT NOVA 5 cv 2'],
@@ -165,14 +164,18 @@ class Interface(Ui_MainWindow):
     pass
 
 
-class NovoCadastro(QDialog):
+class NovoCadastro(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         # Create an instance of the GUI
         self.ui = Ui_Cadastro()
         
+        
         # Run the .setupUi() method to show the GUI
         self.ui.setupUi(self)
+        
+    def pegar_dados(self):
+        pass
     
 
 ############################################################
@@ -276,11 +279,12 @@ class Maquina:
 
 if __name__ == '__main__':
     import sys
-    app = QApplication(sys.argv)
-    Principal = QMainWindow()
+    app = QtWidgets.QApplication(sys.argv)
+    #app.setStyle('Fusion')
+    Principal = QtWidgets.QMainWindow()
     ui = Interface(Principal)
     Principal.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
     
 '''
 if __name__ == '__main__':
