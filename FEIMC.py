@@ -9,6 +9,7 @@
 #           IMPORTAÇÃO DAS BIBLIOTECAS
 ############################################################
 # %%
+#from PySide2 import QtCore
 import numpy as np
 import pandas as pd
 from copy import deepcopy
@@ -16,6 +17,8 @@ import dic_equip
 import funcoes
 import statsmodels.api as sm
 from ui_interface import Ui_MainWindow
+from interface_cadastrar import Ui_Cadastro
+from interface_nova import Ui_MainWindow
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
@@ -40,6 +43,9 @@ class Interface(Ui_MainWindow):
     def __init__(self, MainWindow):
         super().setupUi(MainWindow)
         self.b_start.clicked.connect(self.rodar)
+        self.b_arquivo.clicked.connect(self.aba_abrir)
+        self.b_maquina.clicked.connect(self.aba_cadastrar)
+        self.b_ensaio.clicked.connect(self.indicar_col_abas)
         self.set_comboboxes()
 
     def rodar(self):
@@ -72,8 +78,16 @@ class Interface(Ui_MainWindow):
         dia = (int(x) for x in str(date.today()).split('-'))
         self.dateEdit.setDate(QDate(*dia))
 
-    def aba_abrir(self):
+    def indicar_col_abas(self):
         pass
+
+    def aba_cadastrar(self):
+        cadastro = NovoCadastro(self)
+        cadastro.exec_()
+    
+    def aba_abrir(self):
+        fname=QFileDialog.getOpenFileName(self, 'Open file', r'C:\Users\guilh\Desktop\TCC VSCode', 'Images (*.png, *.xmp *.jpg)')
+        self.filename.setText(fname[0])
 
     def nova_maquina(self):
         dicionario = {'id': ['MIT NOVA 5 cv 2'],
@@ -150,6 +164,16 @@ class Interface(Ui_MainWindow):
         return(inputs, abas, checkboxes_config, checkboxes_results, comboboxes, dia, pontos)
     pass
 
+
+class NovoCadastro(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        # Create an instance of the GUI
+        self.ui = Ui_Cadastro()
+        
+        # Run the .setupUi() method to show the GUI
+        self.ui.setupUi(self)
+    
 
 ############################################################
 # %%
@@ -257,8 +281,16 @@ if __name__ == '__main__':
     ui = Interface(Principal)
     Principal.show()
     sys.exit(app.exec_())
+    
 '''
-
+if __name__ == '__main__':
+    import sys
+    app = QApplication(sys.argv)
+    Principal = QMainWindow()
+    ui = Interface(Principal)
+    Principal.show()
+    sys.exit(app.exec_())
+    
 if __name__ == '__main__':
     inputs = {'Arquivo': u'Ensaios\Ensaio_Rendimento.xlsx',
               'Corrente': '',
