@@ -22,7 +22,7 @@ from interface_nova import Ui_MainWindow
 from PyQt6 import QtCore, QtGui, QtWidgets
 from datetime import date
 from pathlib import Path
-from inspect import getmembers, isfunction, isclass
+from inspect import getmembers, isclass
 from FEIMC import FEIMC
 
 
@@ -78,6 +78,14 @@ class Interface(Ui_MainWindow):
             texto = f'{texto}- Preenchimento do operador.\n'
             pass
 
+        if '' in self.__wt_abas.values():
+            erro = True
+            texto = f'{texto}- Relacionamento entre as abas.\n'
+            
+        if '' in self.__wt_colunas.values():
+            erro = True
+            texto = f'{texto}- Relacionamento entre as colunas.\n'
+
         if erro:
             inicial = 'Impossível executar a função, necessário:'
             mensagem = f'{inicial}\n{texto}'
@@ -89,8 +97,7 @@ class Interface(Ui_MainWindow):
         inputs, checkboxes_config, checkboxes_results, comboboxes, dia, pontos = self.dicionario_dados()
         checagem = self.aviso(inputs)
         if checagem:
-            saida = FEIMC(inputs, {}, checkboxes_config,
-                          comboboxes, dia, pontos)
+            saida = FEIMC()
 
 ########################
 # %% Config Dados
@@ -114,9 +121,11 @@ class Interface(Ui_MainWindow):
         self.dateEdit.setDate(QtCore.QDate(*dia))
 
     def dicionario_dados(self):
+        # Aquisição das entradas do usuário
         inputs = {'Arquivo': self.i_arquivo.text(),
                   'Operador': self.i_operador.text()}
 
+        # Aquisição das checkboxes com as incertezas na Aba configurações
         incertezas = {'Corrente': self.cb_corrente.isChecked(),
                       'Tensao': self.cb_tensao.isChecked(),
                       'Frequencia': self.cb_frequencia.isChecked(),
@@ -126,6 +135,7 @@ class Interface(Ui_MainWindow):
                       'Temperatura': self.cb_temperatura.isChecked(),
                       'Torque': self.cb_torque.isChecked()}
 
+        # Aquisição dos valores das checkboxes na aba de resultados
         checkboxes_results = {'boxplot': self.cb_boxplot.isChecked(),
                               'desvio_padrao': self.cb_desvio_padrao.isChecked(),
                               'histograma': self.cb_histograma.isChecked(),
@@ -138,22 +148,42 @@ class Interface(Ui_MainWindow):
                               'variancia': self.cb_variancia.isChecked(),
                               'violino': self.cb_violino.isChecked()}
 
+        # Aquisição dos valores das comboboxes - exceto equipamentos
         comboboxes = {'Ensaio': self.c_ensaio.currentText(),
-                      'Maquina': self.c_maquina.currentText(),
-                      'Corrente': self.c_corrente.currentText(),
-                      'Frequencia': self.c_frequencia.currentText(),
-                      'Potencia': self.c_potencia.currentText(),
-                      'Resistencia': self.c_resistencia.currentText(),
-                      'RPM': self.c_rpm.currentText(),
-                      'Temperatura': self.c_temperatura.currentText(),
-                      'Tensao': self.c_tensao.currentText(),
-                      'Torque': self.c_torque.currentText()}
+                      'Maquina': self.c_maquina.currentText()}
 
+        # Aquisição dos equipamentos em comboboxes
+        equipamentos = {'Corrente': self.c_corrente.currentText(),
+                        'Frequencia': self.c_frequencia.currentText(),
+                        'Potencia': self.c_potencia.currentText(),
+                        'Resistencia': self.c_resistencia.currentText(),
+                        'RPM': self.c_rpm.currentText(),
+                        'Temperatura': self.c_temperatura.currentText(),
+                        'Tensao': self.c_tensao.currentText(),
+                        'Torque': self.c_torque.currentText()}
+
+        # Pegando os valores das abas da tabela de Widgets
+        wt_abas = {}
+        for i in range(self.__linhas_abas):
+            dici = {self.tw_abas.item(i, 0).text(): self.tw_abas.cellWidget(i, 1).currentText()}
+            wt_abas.update(dici)
+        self.__wt_abas = wt_abas
+        
+        # Pegando os valores das abas da tabela de Widgets
+        wt_colunas = {}
+        for i in range(self.__linhas_colunas):
+            try:
+                dici = {self.tw_colunas.item(i, 0).text(): self.tw_colunas.cellWidget(i, 1).currentText()}
+                wt_colunas.update(dici)
+            except:
+                pass
+        self.__wt_colunas = wt_colunas
+        print(wt_colunas)
+        
         dia = self.dateEdit.date()
         pontos = self.s_pontos.value()
 
         return(inputs, incertezas, checkboxes_results, comboboxes, dia, pontos)
-    pass
 
     def indicar_col_abas(self):
         if not(self.__arquivo_valido):
@@ -162,8 +192,8 @@ class Interface(Ui_MainWindow):
             self.erro(mensagem)
         self.__classe = eval(f'funcoes.{self.c_ensaio.currentText()}')
         self.__objeto = self.__classe()
-        self.w_tabelas(self.tw_linhas, self.__objeto.tabelas,
-                       list(self.__abas))
+        self.__linhas_abas = self.w_tabelas(
+            self.tw_abas, self.__objeto.tabelas, list(self.__abas), nome='abas')
         colunas = []
         for aba in self.__abas:
             colunas.append(aba)
@@ -171,9 +201,10 @@ class Interface(Ui_MainWindow):
                 colunas.append(coluna)
         filtro = [i for i, coluna in enumerate(
             colunas) if coluna in self.__abas]
-        self.w_tabelas(self.tw_colunas, colunas, ['k', 'j'], filtro)
+        self.__linhas_colunas = self.w_tabelas(
+            self.tw_colunas, colunas, self.__colunas_juntas, nome='colunas', fora=filtro)
 
-    def w_tabelas(self, tabela, ensaio, excel, fora=[]):
+    def w_tabelas(self, tabela, ensaio, excel, nome, fora=[]):
         excel.append('')
         excel.reverse()
         tamanho = len(ensaio)
@@ -181,7 +212,8 @@ class Interface(Ui_MainWindow):
         for i in range(tamanho):
             tabela.setItem(i, 0, QtWidgets.QTableWidgetItem(ensaio[i]))
             if not(i in fora):
-                tabela.setCellWidget(i, 1, ComboboxTabelas(excel, i, 'abas'))
+                tabela.setCellWidget(i, 1, ComboboxTabelas(excel, i, nome))
+        return tamanho
 
     def selecionar_tudo(self):
         estado = self.cb_todos_resultados.isChecked()
@@ -198,7 +230,6 @@ class Interface(Ui_MainWindow):
                       'violino': self.cb_violino}
 
         for valor in dicionario.values():
-            pass
             valor.setChecked(estado)
 
 ########################
@@ -210,8 +241,12 @@ class Interface(Ui_MainWindow):
                 self.i_arquivo.text(), sheet_name=None)
             self.__abas = self.__excel.keys()
             self.__colunas = {}
+            self.__colunas_juntas = []
+
             for aba in self.__abas:
                 self.__colunas[aba] = self.__excel[aba].columns.values
+                for coluna in self.__colunas[aba]:
+                    self.__colunas_juntas.append(f'{coluna}##{aba}')
 
             self.__arquivo_valido = True
         except:
@@ -237,14 +272,12 @@ class Interface(Ui_MainWindow):
 class ComboboxTabelas(QtWidgets.QComboBox):
     def __init__(self, lista, numero, local):
         super().__init__()
-        self.setObjectName(f'cb_tw_{local}_{numero}')
         self.addItems(lista)
+
 
 ############################################################
 # %%                CLASSE NOVO CADASTRO
 ############################################################
-
-
 class NovoCadastro(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
