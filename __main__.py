@@ -48,6 +48,7 @@ class Interface(Ui_MainWindow):
         self.i_arquivo.textChanged.connect(self.validar_arquivo)
         self.b_maquina.clicked.connect(self.aba_cadastrar)
         self.b_ensaio.clicked.connect(self.indicar_col_abas)
+        self.cb_todos_resultados.stateChanged.connect(self.selecionar_tudo)
         self.set_comboboxes()
 
 ########################
@@ -116,15 +117,14 @@ class Interface(Ui_MainWindow):
         inputs = {'Arquivo': self.i_arquivo.text(),
                   'Operador': self.i_operador.text()}
 
-        checkboxes_config = {'Escalas': self.cb_escalas.isChecked(),
-                             'Corrente': self.cb_corrente.isChecked(),
-                             'Tensao': self.cb_tensao.isChecked(),
-                             'Frequencia': self.cb_frequencia.isChecked(),
-                             'Potencia': self.cb_potencia.isChecked(),
-                             'Resistencia': self.cb_resistencia.isChecked(),
-                             'RPM': self.cb_rpm.isChecked(),
-                             'Temperatura': self.cb_temperatura.isChecked(),
-                             'Torque': self.cb_torque.isChecked()}
+        incertezas = {'Corrente': self.cb_corrente.isChecked(),
+                      'Tensao': self.cb_tensao.isChecked(),
+                      'Frequencia': self.cb_frequencia.isChecked(),
+                      'Potencia': self.cb_potencia.isChecked(),
+                      'Resistencia': self.cb_resistencia.isChecked(),
+                      'RPM': self.cb_rpm.isChecked(),
+                      'Temperatura': self.cb_temperatura.isChecked(),
+                      'Torque': self.cb_torque.isChecked()}
 
         checkboxes_results = {'boxplot': self.cb_boxplot.isChecked(),
                               'desvio_padrao': self.cb_desvio_padrao.isChecked(),
@@ -152,25 +152,28 @@ class Interface(Ui_MainWindow):
         dia = self.dateEdit.date()
         pontos = self.s_pontos.value()
 
-        return(inputs, checkboxes_config, checkboxes_results, comboboxes, dia, pontos)
+        return(inputs, incertezas, checkboxes_results, comboboxes, dia, pontos)
     pass
 
     def indicar_col_abas(self):
         if not(self.__arquivo_valido):
-            mensagem = ('Necessário Selecionar o arquivo antes de Configurar o Ensaio')
+            mensagem = (
+                'Necessário Selecionar o arquivo antes de Configurar o Ensaio')
             self.erro(mensagem)
         self.__classe = eval(f'funcoes.{self.c_ensaio.currentText()}')
         self.__objeto = self.__classe()
-        self.w_tabelas(self.tw_linhas, self.__objeto.tabelas, list(self.__abas))
+        self.w_tabelas(self.tw_linhas, self.__objeto.tabelas,
+                       list(self.__abas))
         colunas = []
         for aba in self.__abas:
             colunas.append(aba)
             for coluna in list(self.__colunas[aba]):
                 colunas.append(coluna)
-        filtro = [i for i, coluna in enumerate(colunas) if coluna in self.__abas]
+        filtro = [i for i, coluna in enumerate(
+            colunas) if coluna in self.__abas]
         self.w_tabelas(self.tw_colunas, colunas, ['k', 'j'], filtro)
-        
-    def w_tabelas(self, tabela, ensaio, excel, fora= []):
+
+    def w_tabelas(self, tabela, ensaio, excel, fora=[]):
         excel.append('')
         excel.reverse()
         tamanho = len(ensaio)
@@ -179,13 +182,32 @@ class Interface(Ui_MainWindow):
             tabela.setItem(i, 0, QtWidgets.QTableWidgetItem(ensaio[i]))
             if not(i in fora):
                 tabela.setCellWidget(i, 1, ComboboxTabelas(excel, i, 'abas'))
-    
+
+    def selecionar_tudo(self):
+        estado = self.cb_todos_resultados.isChecked()
+        dicionario = {'boxplot': self.cb_boxplot,
+                      'desvio_padrao': self.cb_desvio_padrao,
+                      'histograma': self.cb_histograma,
+                      'histograma_nominal': self.cb_histograma_nominal,
+                      'max_min': self.cb_max_min,
+                      'media': self.cb_media,
+                      'mediana': self.cb_mediana,
+                      'moda': self.cb_moda,
+                      'quartis': self.cb_quartis,
+                      'variancia': self.cb_variancia,
+                      'violino': self.cb_violino}
+
+        for valor in dicionario.values():
+            pass
+            valor.setChecked(estado)
+
 ########################
 # %%  Config Arquivo
 ########################
     def validar_arquivo(self):
         try:
-            self.__excel = pd.read_excel(self.i_arquivo.text(), sheet_name=None)
+            self.__excel = pd.read_excel(
+                self.i_arquivo.text(), sheet_name=None)
             self.__abas = self.__excel.keys()
             self.__colunas = {}
             for aba in self.__abas:
@@ -198,7 +220,7 @@ class Interface(Ui_MainWindow):
             self.i_arquivo.setText('')
             self.__arquivo_valido = False
         pass
-        
+
 ########################
 # %%  Config MsgErro
 ########################
@@ -209,7 +231,9 @@ class Interface(Ui_MainWindow):
         msg_arquivo.exec()
 
 
-
+############################################################
+# %%                CLASSE TABELA COM COMBOBOX
+############################################################
 class ComboboxTabelas(QtWidgets.QComboBox):
     def __init__(self, lista, numero, local):
         super().__init__()
@@ -219,6 +243,8 @@ class ComboboxTabelas(QtWidgets.QComboBox):
 ############################################################
 # %%                CLASSE NOVO CADASTRO
 ############################################################
+
+
 class NovoCadastro(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -254,6 +280,7 @@ class NovoCadastro(QtWidgets.QDialog):
                       'cos fi': ['0.78'],
                       'Polos': ['4']}
         return dicionario
+
 
 ############################################################
 # %% INÍCIO DO PROGRAMA
