@@ -88,7 +88,7 @@
           <string/>
          </property>
          <property name="pixmap">
-          <pixmap resource="TCC VSCode/Imagens/imagens.qrc">:/newPrefix/logo-feimc-escrita.png</pixmap>
+          <pixmap resource="Imagens/imagens.qrc">:/newPrefix/logo-feimc-escrita.png</pixmap>
          </property>
          <property name="scaledContents">
           <bool>true</bool>
@@ -135,7 +135,7 @@
           <string/>
          </property>
          <property name="pixmap">
-          <pixmap resource="TCC VSCode/Imagens/imagens.qrc">:/newPrefix/grucad-01.png</pixmap>
+          <pixmap resource="Imagens/imagens.qrc">:/newPrefix/grucad-01.png</pixmap>
          </property>
          <property name="scaledContents">
           <bool>true</bool>
@@ -227,14 +227,14 @@
               <item>
                <widget class="QFrame" name="config_gerais">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Ignored">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Ignored">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
                 <property name="minimumSize">
                  <size>
-                  <width>200</width>
+                  <width>250</width>
                   <height>0</height>
                  </size>
                 </property>
@@ -287,64 +287,6 @@
                   <widget class="QLineEdit" name="i_operador"/>
                  </item>
                  <item>
-                  <widget class="QLabel" name="l_ensaio">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>16777215</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                   <property name="text">
-                    <string>Ensaio</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QComboBox" name="c_ensaio"/>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="b_ensaio">
-                   <property name="text">
-                    <string>Configurar Ensaio</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="l_arquivo">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>16777215</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                   <property name="text">
-                    <string>Arquivo</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLineEdit" name="i_arquivo"/>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="b_arquivo">
-                   <property name="text">
-                    <string>Selecionar Arquivo</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
                   <widget class="QLabel" name="label">
                    <property name="text">
                     <string>Data</string>
@@ -380,6 +322,100 @@
                     <bool>true</bool>
                    </property>
                   </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="l_arquivo">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>Arquivo</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="i_arquivo"/>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="b_arquivo">
+                   <property name="text">
+                    <string>Selecionar Arquivo</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="l_maquinas">
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>Máquina</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="c_maquina"/>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="b_maquina">
+                   <property name="text">
+                    <string>Adicionar nova</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="l_ensaio">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>Ensaio</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="c_ensaio"/>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="b_ensaio">
+                   <property name="text">
+                    <string>Configurar Ensaio</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="verticalSpacer">
+                   <property name="orientation">
+                    <enum>Qt::Vertical</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>20</width>
+                     <height>40</height>
+                    </size>
+                   </property>
+                  </spacer>
                  </item>
                  <item>
                   <widget class="QLabel" name="l_pontos">
@@ -421,42 +457,6 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLabel" name="l_maquinas">
-                   <property name="maximumSize">
-                    <size>
-                     <width>16777215</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                   <property name="text">
-                    <string>Máquina</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QComboBox" name="c_maquina"/>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="b_maquina">
-                   <property name="text">
-                    <string>Adicionar nova</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <spacer name="verticalSpacer">
-                   <property name="orientation">
-                    <enum>Qt::Vertical</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>20</width>
-                     <height>40</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                 <item>
                   <widget class="QPushButton" name="b_start">
                    <property name="text">
                     <string>Rodar Simulação</string>
@@ -476,14 +476,14 @@
               <item>
                <widget class="QFrame" name="config_equip">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
                 <property name="minimumSize">
                  <size>
-                  <width>200</width>
+                  <width>250</width>
                   <height>0</height>
                  </size>
                 </property>
@@ -665,7 +665,7 @@
                      <rect>
                       <x>0</x>
                       <y>0</y>
-                      <width>314</width>
+                      <width>446</width>
                       <height>641</height>
                      </rect>
                     </property>
@@ -730,7 +730,7 @@
                       </widget>
                      </item>
                      <item>
-                      <widget class="QTableWidget" name="tw_linhas">
+                      <widget class="QTableWidget" name="tw_abas">
                        <attribute name="horizontalHeaderStretchLastSection">
                         <bool>true</bool>
                        </attribute>
@@ -1037,7 +1037,7 @@
           <string/>
          </property>
          <property name="pixmap">
-          <pixmap resource="TCC VSCode/Imagens/imagens.qrc">:/newPrefix/ufsc.png</pixmap>
+          <pixmap resource="Imagens/imagens.qrc">:/newPrefix/ufsc.png</pixmap>
          </property>
          <property name="scaledContents">
           <bool>true</bool>
@@ -1102,7 +1102,7 @@
   </action>
  </widget>
  <resources>
-  <include location="TCC VSCode/Imagens/imagens.qrc"/>
+  <include location="Imagens/imagens.qrc"/>
  </resources>
  <connections/>
 </ui>
