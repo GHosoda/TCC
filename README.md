@@ -2,13 +2,13 @@
 Software para a análise das incertezas de medição dos equipamentos usados em ensaios de motores de indução trifásicos
 
 - [ ] Criação da interface gráfica
-  - [ ] Escolha da Gui
-  - [ ] Estudo da Gui
+  - [x] Escolha da Gui
+  - [x] Estudo da Gui
   - [ ] Criação da interface principal
-    - [ ] Projeto no Designer
+    - [x] Projeto no Designer
     - [ ] Atribuição das funções
   - [ ] Criação da interface de cadastro de novas máquinas
-    - [ ] Projeto no Designer
+    - [x] Projeto no Designer
     - [ ] Atribuição das Funções
 
 - [ ] Criação do "Back-End"
@@ -18,8 +18,8 @@ Software para a análise das incertezas de medição dos equipamentos usados em 
   - [ ] Plot
   
 - [ ] Funções
-  - [ ] Estudo da normativa IEEE 112
-  - [ ] Definição modelo das funções
+  - [x] Estudo da normativa IEEE 112
+  - [x] Definição modelo das funções
   - [ ] Configuração das Funções
 
 - [ ] Incertezas
