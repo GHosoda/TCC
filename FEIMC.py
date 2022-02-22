@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 from copy import deepcopy
 import dic_equip
-import funcoes
+from funcoes import *
 import statsmodels.api as sm
 from datetime import date
 
@@ -22,7 +22,9 @@ from datetime import date
 ############################################################
 # %%
 class FEIMC:
-    def __init__(self, inputs, abas, checkboxes_config, comboboxes, dia, pontos, **kwargs):
+    def __init__(self, dfs, **kwargs):
+        self.__dfs = dfs
+        '''
         func = {'IEEE112_Metodo_A': funcoes.IEEE112_Metodo_A,
                 'IEEE112_Metodo_B': funcoes.IEEE112_Metodo_B}
         self.__arquivo = inputs['Arquivo']
@@ -38,21 +40,37 @@ class FEIMC:
         self.dataframes(inputs, abas, **kwargs)
         #self.incertezas()
         #self.sep_dataframes()
-        #self.__resultado = self.calculo(**kwargs)
-
+            #self.__resultado = self.calculo
+            '''
 
     @property
     def resultado(self):
         return self.__resultado
+
+    def remapeamento(self, wt_abas, wt_colunas={}):
+        print('#'*30)
+        print('ANTES')
+        print('#'*30)
+        print(wt_abas)
+        print(wt_colunas)
+        wt_abas = {valor: chave for chave,
+                   valor in wt_abas.items() if not(valor == '')}
+        #wt_colunas = {valor: chave for chave, valor in wt_colunas.items() if not(valor == '') }
+        wt_colunas = {valor[:valor.find('##')]: chave for chave, valor in wt_colunas.items() if not(valor == '')}
+        print('#'*30)
+        print('DEPOIS')
+        print('#'*30)
+        print(wt_abas)
+        print(wt_colunas)
+        for aba, df in self.__dfs.items():
+            pass
 
     def dataframes(self, inputs, abas, **kwargs):
         dfs = pd.read_excel(self.__arquivo, sheet_name=None)
         usadas = []
         dici = {}
 
-        print(inputs)
         inputs = {key: value.split(';') for (key, value) in inputs.items()}
-        print(inputs)
         for chave, df in dfs.items():
             # Renomeando as colunas conforme padrão
             mapa_colunas = dict(zip(df.columns, df.columns))
@@ -114,8 +132,23 @@ class Maquina:
 
 
 ############################################################
-#           INÍCIO DO PROGRAMA
+# %%          INÍCIO DO PROGRAMA
 ############################################################
-# %%
+
 if __name__ == '__main__':
-    pass
+    dfs = pd.read_excel('Ensaios\\7 - MIT NOVA 15 cv (14-02-2019).xlsx', sheet_name=None)
+    abas = ['Resistências', 'de Carga', 'a Vazio']
+    abas_excel = ['Ensaio_Vazio', 'Ensaio_Carga',
+                  'Ensaio_Termico_Carga', 'Ensaio_Termico_Vazio']
+    colunas_excel = {'Medição de Resistência a Frio': [],
+                     'Térmico': [],
+                     'de Carga': ['Tensao', 'Corrente', 'Potencia', 'Frequencia', 'Temperatura', 'Torque', 'RPM'],
+                     'a Vazio': ['Tensao', 'Corrente', 'Potencia', 'Frequencia']
+                     }
+    
+    
+    resultado = IEEE112MetodoA()
+    resultado = resultado.ensaio_resistencia(dfs)
+    print(resultado)
+    # resultado = FEIMC(dfs)
+    

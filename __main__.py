@@ -50,6 +50,8 @@ class Interface(Ui_MainWindow):
         self.b_ensaio.clicked.connect(self.indicar_col_abas)
         self.cb_todos_resultados.stateChanged.connect(self.selecionar_tudo)
         self.set_comboboxes()
+        self.__wt_abas = {}
+        self.__wt_colunas = {}
 
 ########################
 # %% Novas Janelas
@@ -83,7 +85,7 @@ class Interface(Ui_MainWindow):
             texto = f'{texto}- Relacionamento entre as abas.\n'
             
         if '' in self.__wt_colunas.values():
-            erro = True
+            #erro = True
             texto = f'{texto}- Relacionamento entre as colunas.\n'
 
         if erro:
@@ -97,7 +99,8 @@ class Interface(Ui_MainWindow):
         inputs, checkboxes_config, checkboxes_results, comboboxes, dia, pontos = self.dicionario_dados()
         checagem = self.aviso(inputs)
         if checagem:
-            saida = FEIMC()
+            saida = FEIMC(self.__excel)
+            saida.remapeamento(self.__wt_abas, self.__wt_colunas)
 
 ########################
 # %% Config Dados
@@ -178,7 +181,6 @@ class Interface(Ui_MainWindow):
             except:
                 pass
         self.__wt_colunas = wt_colunas
-        print(wt_colunas)
         
         dia = self.dateEdit.date()
         pontos = self.s_pontos.value()
@@ -321,7 +323,7 @@ class NovoCadastro(QtWidgets.QDialog):
 if __name__ == '__main__':
     import sys
     app = QtWidgets.QApplication(sys.argv)
-    # app.setStyle('Fusion')
+    app.setStyle('Fusion')
     Principal = QtWidgets.QMainWindow()
     ui = Interface(Principal)
     Principal.show()
