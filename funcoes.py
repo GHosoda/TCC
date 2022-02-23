@@ -206,6 +206,17 @@ class IEEE112MetodoA(IEEE112):
                  'RPM': ['Velocidade'],
                  'Temperatura': ['Temperatura', 'T_amb', 'T_res']}
           
+    def incertezas(self):
+        dici  = {'Corrente': ['Corrente'],
+                 'Tensao': ['Tensao'],
+                 'Potencia': ['Potencia'],
+                 'Frequencia': ['Frequencia'],
+                 'Resistencia': ['RS', 'RT', 'ST'],
+                 'Torque': ['Torque'],
+                 'RPM': ['Velocidade'],
+                 'Temperatura': ['Temperatura', 'T_amb', 'T_res']}
+        return dici
+    
     def calculo(self, dfs_mc, **kwargs):
         for dfs in dfs_mc:
             dfs = self.ensaio_resistencia(dfs, **kwargs)
