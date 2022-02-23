@@ -158,24 +158,25 @@ class IEEE112(Ensaio):
   
     def perdas_suplementares(self, p_sup, t2):
         while True:
-            corr_fac = .8
-            coeff_ang = 0
-            if coeff_ang < 0 or corr_fac < .9:
+            t2 = sm.add_constant(t2)
+            resultado_regressao = sm.OLS(p_sup, t2).fit()
+            coeff_ang = resultado_regressao.params[1]
+            rsquared = resultado_regressao.rsquared
+            if coeff_ang < 0 or rsquared < .9:
                 aux = {}
                 for i in range(len(p_sup)):
-                    p_sup_aux = deepcopy(p_sup)
+                    p_sup_aux = list(p_sup)
                     p_sup_aux.pop(i)
-                    t2_aux = deepcopy(t2)
+                    t2_aux = list(t2)
                     t2_aux.pop(i)
                     t2_aux = sm.add_constant(t2_aux)
                     resultado_regressao = sm.OLS(p_sup_aux, t2_aux).fit()
-                    aux[i] = {'lin': resultado_regressao.params[1],
-                              'corr_fac': resultado_regressao.cov_type}
-                    print(aux[i])
+                    coef_ang = resultado_regressao.params[1]
+                    if coef_ang > 0:
+                        aux[i] = [resultado_regressao.rsquared]                   
             else:
-                break
-            break
-        return coeff_ang
+                return coeff_ang
+            return coeff_ang
 ######################################
 # %%    CLASSE IEEE112 - PROPERTIES
 ###################################### 
@@ -335,11 +336,28 @@ class IEEE112MetodoB(IEEE112):
         p_sup = list(tab_carga['P_sup'])
         t2 = list(tab_carga['C-Torque']**2)
         coeff = self.perdas_suplementares(p_sup, t2)
-        print(coeff)
+        tab_carga['C-P_sup'] = coeff*tab_carga['C-Torque']**2
+        
+        #Correção Pj1
+        ts = tab_resist.loc[1, 'Ts']
+        t_res = tab_resist.loc[1, 'T_res']
+        tab_carga['C-Pj1'] = 1.5*tab_carga['Corrente']**2*tab_resist.loc[1, 'R1']*(k_estator+ts)/(k_estator+t_res)
+        
+        #Correção Pj2
+        tab_carga['C-Pj2'] = tab_carga['C-Escorregamento']*(tab_carga['Potencia'] - tab_carga['C-Pj1']- tab_carga['P_fe'])
+        
+        #Perdas totais corrigidas
+        tab_carga['C-P_tot'] = tab_carga['C-Pj1']+tab_carga['C-Pj2']+tab_carga['C-P_sup']+tab_carga['P_fe']+tab_carga['P_fw']
+        
+        #Potencia saida corrigida
+        tab_carga['C-P_out'] = tab_carga['Potencia'] - tab_carga['C-P_tot']
+        
+        #Rendimento
+        tab_carga['Rendimento'] = tab_carga['C-P_out']/tab_carga['Potencia']
         
         #Criando novo df com os resultados
-        resultado = tab_carga
-        #resultado['Potencia'] = resultado['Potencia']/p_nominal
+        tab_carga['Potencia [pu]'] = tab_carga['Potencia']/p_nominal
+        resultado = tab_carga[['Potencia [pu]', 'C-Escorregamento', 'P_out', 'Pj1', 'Pj2', 'P_sup', 'P_fw', 'P_fe', 'C-Pj1', 'C-Pj2', 'C-P_sup', 'C-P_out', 'Rendimento']]
         dfs['Resultado'] = resultado
         
         return dfs
