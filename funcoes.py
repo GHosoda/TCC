@@ -40,7 +40,8 @@ class Ensaio:
     @property
     def incertezas(self):
         return self._incertezas
-    
+
+
 ############################################################
 # %%          CLASSE IEEE112
 ############################################################
@@ -177,6 +178,7 @@ class IEEE112(Ensaio):
             else:
                 return coeff_ang
             return coeff_ang
+        
 ######################################
 # %%    CLASSE IEEE112 - PROPERTIES
 ###################################### 
@@ -373,67 +375,10 @@ class IEEE112MetodoB(IEEE112):
         
         return dfs
 
-'''
-def IEEE112_Metodo_B(df, **kwargs):
-    # Perdas no Ferro - Correção E
-    dfc['D - Perdas Ferro'] = dfv.loc[dici['pu'],
-                                      'E - Perdas Ferro Tensao Nominal']*(dfc['D - E']/dici['pu'])**2
 
-    # Atribuição das Perdas de Atrito e Ventilação no Dataframe da
-    dfc['E - Perdas Atrito Vent.'] = float(
-        dfv.loc[dici['pu'], 'E - Perdas Atrito Vent.'])
-
-    # Cálculo Pj2
-    dfc['D - Pj2'] = dfc['D - Escorregamento'] * \
-        (dfc['Potencia'] - dfc['D - Pj1'] - dfc['D - Perdas Ferro'])
-
-    # Determinação Perdas Suplementares
-    dfc['D - Perdas Suplementares'] = dfc['Potencia'] - dfc['D - Pj1'] - dfc['D - Pj2'] - \
-        dfc['D - Perdas Ferro'] - dfc['E - Perdas Atrito Vent.'] - \
-        dfc['D - Potencia Mecanica']
-    print(dfc['D - Perdas Suplementares'])
-    T2 = list(dfc['Torque']**2)
-    Psup = list(dfc['D - Perdas Suplementares'])
-
-    # Configuração regressão linear
-    T2 = sm.add_constant(T2)
-    resultado_regressao = sm.OLS(Psup, T2).fit()
-    dfc['D - Perdas Suplementares'] = resultado_regressao.params[1]
-    dfc['D - Perdas Suplementares'] = dfc['D - Perdas Suplementares'] * \
-        (dfc['Torque']**2)
-
-    # Correção perdas joule do estator
-    #dfc['D - Pj1'] = 1.5*dfc['Corrente']**2*dfc('D - T1@Temp OP')
-
-    # Determinação Rendimento
-    dfc['Rendimento'] = (dfc['Potencia'] - dfc['D - Pj1'] - dfc['D - Pj2'] - dfc['D - Perdas Ferro'] -
-                         dfc['E - Perdas Atrito Vent.'] - dfc['D - Potencia Mecanica'] - dfc['D - Perdas Suplementares'])/dfc['Potencia']
-
-    # Correção do escorregamento
-
-    # Correção da velocidade
-    dfc['RPM'] = (1 - dfc['D - Escorregamento']) * \
-        120*dfc['Frequencia']/dici['polos']
-
-    # Correção perdas joule do rotor
-    dfc['D - Pj2'] = dfc['D - Escorregamento'] * \
-        (dfc['Potencia'] - dfc['D - Perdas Ferro'] - dfc['D - Pj1'])
-
-    # Correção potência mecânica
-    dfc['D - Potencia Mecanica'] = dfc['D - Pj1'] + dfc['D - Pj2'] + \
-        dfc['D - Perdas Ferro'] + dfc['E - Perdas Atrito Vent.'] + \
-        dfc['D - Perdas Suplementares']
-
-    # Correção Rendimento
-    dfc['Rendimento'] = (dfc['Potencia'] - dfc['D - Pj1'] - dfc['D - Pj2'] - dfc['D - Perdas Ferro'] -
-                         dfc['E - Perdas Atrito Vent.'] - dfc['D - Perdas Suplementares'])/dfc['Potencia']
-
-    df[dici['aba_carga']] = dfc
-    return df
-'''
-
+############################################################
+# %%          INÍCIO DO PROGRAMA
+############################################################
 if __name__ == '__main__':
     a = IEEE112MetodoA()
-    print(a.incertezas)
     
-# %%
