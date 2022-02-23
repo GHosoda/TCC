@@ -24,24 +24,6 @@ from datetime import date
 class FEIMC:
     def __init__(self, dfs, **kwargs):
         self.__dfs = dfs
-        '''
-        func = {'IEEE112_Metodo_A': funcoes.IEEE112_Metodo_A,
-                'IEEE112_Metodo_B': funcoes.IEEE112_Metodo_B}
-        self.__arquivo = inputs['Arquivo']
-        self.__pontos = pontos
-        self.__funcao = func[comboboxes['Ensaio']]
-        self.__maquina = comboboxes['Maquina']
-        comboboxes.pop('Maquina', None)
-        comboboxes.pop('Ensaio', None)
-        self.__equipamentos = comboboxes
-        self.__bool_incertezas = checkboxes_config
-        self.__temperatura = 25
-        self.__dia = dia
-        self.dataframes(inputs, abas, **kwargs)
-        #self.incertezas()
-        #self.sep_dataframes()
-            #self.__resultado = self.calculo
-            '''
 
     @property
     def resultado(self):
@@ -55,7 +37,6 @@ class FEIMC:
         print(wt_colunas)
         wt_abas = {valor: chave for chave,
                    valor in wt_abas.items() if not(valor == '')}
-        #wt_colunas = {valor: chave for chave, valor in wt_colunas.items() if not(valor == '') }
         wt_colunas = {valor[:valor.find('##')]: chave for chave, valor in wt_colunas.items() if not(valor == '')}
         print('#'*30)
         print('DEPOIS')
@@ -108,47 +89,36 @@ class FEIMC:
         self.__dfs = dici
 
     def calculo(self, **kwargs):
-        for i in range(self.__pontos+1):
-            dicionario = {chave: valor[i]
-                          for chave, valor in self.__dfs.items()}
-            resultado = self.__funcao(dicionario, **kwargs)
-            for chave in dicionario.keys():
-                self.__dfs[chave][i] = resultado[chave]
-        return self.__dfs
-
-
-############################################################
-# %%
-class Maquina:
-    def __init__(self, nome, potencia, tensao, corrente, frequencia, rpm, cos_phi, polos):
-        self.__nome = nome
-        self.__potencia = potencia
-        self.__tensao = tensao
-        self.__corrente = corrente
-        self.__frequencia = frequencia
-        self.__rpm = rpm
-        self.__cos_phi = cos_phi
-        self.__polos = polos
+        dfs = self.__funcao()
 
 
 ############################################################
 # %%          INÍCIO DO PROGRAMA
 ############################################################
-
 if __name__ == '__main__':
     dfs = pd.read_excel('Ensaios\\7 - MIT NOVA 15 cv (14-02-2019).xlsx', sheet_name=None)
     abas = ['Resistências', 'de Carga', 'a Vazio']
     abas_excel = ['Ensaio_Vazio', 'Ensaio_Carga',
                   'Ensaio_Termico_Carga', 'Ensaio_Termico_Vazio']
-    colunas_excel = {'Medição de Resistência a Frio': [],
-                     'Térmico': [],
+    colunas_excel = {'Resistencias': ['RS', 'RT', 'ST', 'T_amb', 'T_res'],
                      'de Carga': ['Tensao', 'Corrente', 'Potencia', 'Frequencia', 'Temperatura', 'Torque', 'RPM'],
                      'a Vazio': ['Tensao', 'Corrente', 'Potencia', 'Frequencia']
                      }
-    
-    
-    resultado = IEEE112MetodoA()
-    resultado = resultado.ensaio_resistencia(dfs)
-    print(resultado)
-    # resultado = FEIMC(dfs)
-    
+
+    kwargs = {'Material Estator': 'Cobre',
+              'Material Rotor': 'Alumínio',
+              'Potencia Nominal': 11000,
+              'Polos': 4,
+              'Tensao Nominal': 380}
+
+    k = [dfs]
+    classe = IEEE112MetodoB()
+    dfs = classe.calculo(k, **kwargs)
+    for resultado in dfs:
+        with pd.ExcelWriter('Resultado.xlsx') as writer:
+            for chave, valor in resultado.items():
+                print('\n\n\n\n')
+                print(chave)
+                print(100*'#')
+                print(valor)
+                valor.to_excel(writer, sheet_name = chave, index = False)
