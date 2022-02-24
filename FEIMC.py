@@ -15,14 +15,7 @@ import pandas as pd
 from copy import deepcopy
 from funcoes import *
 from datetime import date
-from dic_equip import (equipamentos_corrente,
-                       equipamentos_frequencia,
-                       equipamentos_potencia,
-                       equipamentos_resistencia,
-                       equipamentos_rpm,
-                       equipamentos_temperatura,
-                       equipamentos_tensao,
-                       equipamentos_torque)
+from dic_equip import Sensores
 
 
 ############################################################
@@ -44,36 +37,25 @@ class FEIMC:
         for aba, df in self.__dfs.items():
             pass
 
-    def incertezas(self, series, pontos, dici_bool, equipamentos, escalas_auto = True, **kwargs):
+    def incertezas(self, pontos, dici_bool, equipamentos, escalas_auto = True, **kwargs):
         classe = self._classe
+        dfs = self._dfs
         g_colunas = classe.incertezas()
-        funcoes = {'Corrente': equipamentos_corrente,
-                   'Tensao': equipamentos_tensao,
-                   'Potencia': equipamentos_potencia,
-                   'Frequencia': equipamentos_frequencia,
-                   'Resistencia': equipamentos_resistencia,
-                   'Torque': equipamentos_torque,
-                   'RPM': equipamentos_rpm,
-                   'Temperatura': equipamentos_temperatura}
+        g_colunas = {chave: valor for chave, valor in g_colunas if dici_bool[chave]}
         
-        coluna = series.name
-        grandeza = ''
-        for chave, colunas in g_colunas:
-            if coluna in colunas:
-                grandeza = chave
+        for aba, df in dfs.items():
+            for coluna in df.columns:
+                for grandeza, colunas in g_colunas:
+                    if coluna in colunas:
+                        df[coluna] = Sensores(df, coluna, grandeza, equipamentos, escalas_auto)
         
-        if grandeza == '':
-            series_mc = self.placebo(series, pontos)
-        
-        if dici_bool[grandeza]:
-            funcao = funcoes[grandeza]
-            series_mc = funcao(series, equipamentos, pontos, escalas_auto, **kwargs)
-        series_mc = series
-        return series_mc
+            df = df.applymap(lambda x: self.placebo(x, pontos))
 
-    def placebo(self, series, pontos):
-        series_mc = series.map(lambda x: [k for k in range(pontos+1)])
-        return series_mc
+    def placebo(self, valor, pontos):
+        if isinstance(valor, list):
+            return valor
+        list_valor = [valor for k in range(pontos+1)]
+        return list_valor
 
     def calculo(self, **kwargs):
         metodo = self._classe
