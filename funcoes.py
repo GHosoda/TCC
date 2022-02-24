@@ -40,7 +40,8 @@ class Ensaio:
     @property
     def incertezas(self):
         return self._incertezas
-    
+
+
 ############################################################
 # %%          CLASSE IEEE112
 ############################################################
@@ -158,24 +159,26 @@ class IEEE112(Ensaio):
   
     def perdas_suplementares(self, p_sup, t2):
         while True:
-            corr_fac = .8
-            coeff_ang = 0
-            if coeff_ang < 0 or corr_fac < .9:
+            t2 = sm.add_constant(t2)
+            resultado_regressao = sm.OLS(p_sup, t2).fit()
+            coeff_ang = resultado_regressao.params[1]
+            rsquared = resultado_regressao.rsquared
+            if coeff_ang < 0 or rsquared < .9:
                 aux = {}
                 for i in range(len(p_sup)):
-                    p_sup_aux = deepcopy(p_sup)
+                    p_sup_aux = list(p_sup)
                     p_sup_aux.pop(i)
-                    t2_aux = deepcopy(t2)
+                    t2_aux = list(t2)
                     t2_aux.pop(i)
                     t2_aux = sm.add_constant(t2_aux)
                     resultado_regressao = sm.OLS(p_sup_aux, t2_aux).fit()
-                    aux[i] = {'lin': resultado_regressao.params[1],
-                              'corr_fac': resultado_regressao.cov_type}
-                    print(aux[i])
+                    coef_ang = resultado_regressao.params[1]
+                    if coef_ang > 0:
+                        aux[i] = [resultado_regressao.rsquared]                   
             else:
-                break
-            break
-        return coeff_ang
+                return coeff_ang
+            return coeff_ang
+        
 ######################################
 # %%    CLASSE IEEE112 - PROPERTIES
 ###################################### 
@@ -205,6 +208,17 @@ class IEEE112MetodoA(IEEE112):
                  'RPM': ['Velocidade'],
                  'Temperatura': ['Temperatura', 'T_amb', 'T_res']}
           
+    def incertezas(self):
+        dici  = {'Corrente': ['Corrente'],
+                 'Tensao': ['Tensao'],
+                 'Potencia': ['Potencia'],
+                 'Frequencia': ['Frequencia'],
+                 'Resistencia': ['RS', 'RT', 'ST'],
+                 'Torque': ['Torque'],
+                 'RPM': ['Velocidade'],
+                 'Temperatura': ['Temperatura', 'T_amb', 'T_res']}
+        return dici
+    
     def calculo(self, dfs_mc, **kwargs):
         for dfs in dfs_mc:
             dfs = self.ensaio_resistencia(dfs, **kwargs)
@@ -335,76 +349,36 @@ class IEEE112MetodoB(IEEE112):
         p_sup = list(tab_carga['P_sup'])
         t2 = list(tab_carga['C-Torque']**2)
         coeff = self.perdas_suplementares(p_sup, t2)
-        print(coeff)
+        tab_carga['C-P_sup'] = coeff*tab_carga['C-Torque']**2
+        
+        #Correção Pj1
+        ts = tab_resist.loc[1, 'Ts']
+        t_res = tab_resist.loc[1, 'T_res']
+        tab_carga['C-Pj1'] = 1.5*tab_carga['Corrente']**2*tab_resist.loc[1, 'R1']*(k_estator+ts)/(k_estator+t_res)
+        
+        #Correção Pj2
+        tab_carga['C-Pj2'] = tab_carga['C-Escorregamento']*(tab_carga['Potencia'] - tab_carga['C-Pj1']- tab_carga['P_fe'])
+        
+        #Perdas totais corrigidas
+        tab_carga['C-P_tot'] = tab_carga['C-Pj1']+tab_carga['C-Pj2']+tab_carga['C-P_sup']+tab_carga['P_fe']+tab_carga['P_fw']
+        
+        #Potencia saida corrigida
+        tab_carga['C-P_out'] = tab_carga['Potencia'] - tab_carga['C-P_tot']
+        
+        #Rendimento
+        tab_carga['Rendimento'] = tab_carga['C-P_out']/tab_carga['Potencia']
         
         #Criando novo df com os resultados
-        resultado = tab_carga
-        #resultado['Potencia'] = resultado['Potencia']/p_nominal
+        tab_carga['Potencia [pu]'] = tab_carga['Potencia']/p_nominal
+        resultado = tab_carga[['Potencia [pu]', 'C-Escorregamento', 'P_out', 'Pj1', 'Pj2', 'P_sup', 'P_fw', 'P_fe', 'C-Pj1', 'C-Pj2', 'C-P_sup', 'C-P_out', 'Rendimento']]
         dfs['Resultado'] = resultado
         
         return dfs
 
-'''
-def IEEE112_Metodo_B(df, **kwargs):
-    # Perdas no Ferro - Correção E
-    dfc['D - Perdas Ferro'] = dfv.loc[dici['pu'],
-                                      'E - Perdas Ferro Tensao Nominal']*(dfc['D - E']/dici['pu'])**2
 
-    # Atribuição das Perdas de Atrito e Ventilação no Dataframe da
-    dfc['E - Perdas Atrito Vent.'] = float(
-        dfv.loc[dici['pu'], 'E - Perdas Atrito Vent.'])
-
-    # Cálculo Pj2
-    dfc['D - Pj2'] = dfc['D - Escorregamento'] * \
-        (dfc['Potencia'] - dfc['D - Pj1'] - dfc['D - Perdas Ferro'])
-
-    # Determinação Perdas Suplementares
-    dfc['D - Perdas Suplementares'] = dfc['Potencia'] - dfc['D - Pj1'] - dfc['D - Pj2'] - \
-        dfc['D - Perdas Ferro'] - dfc['E - Perdas Atrito Vent.'] - \
-        dfc['D - Potencia Mecanica']
-    print(dfc['D - Perdas Suplementares'])
-    T2 = list(dfc['Torque']**2)
-    Psup = list(dfc['D - Perdas Suplementares'])
-
-    # Configuração regressão linear
-    T2 = sm.add_constant(T2)
-    resultado_regressao = sm.OLS(Psup, T2).fit()
-    dfc['D - Perdas Suplementares'] = resultado_regressao.params[1]
-    dfc['D - Perdas Suplementares'] = dfc['D - Perdas Suplementares'] * \
-        (dfc['Torque']**2)
-
-    # Correção perdas joule do estator
-    #dfc['D - Pj1'] = 1.5*dfc['Corrente']**2*dfc('D - T1@Temp OP')
-
-    # Determinação Rendimento
-    dfc['Rendimento'] = (dfc['Potencia'] - dfc['D - Pj1'] - dfc['D - Pj2'] - dfc['D - Perdas Ferro'] -
-                         dfc['E - Perdas Atrito Vent.'] - dfc['D - Potencia Mecanica'] - dfc['D - Perdas Suplementares'])/dfc['Potencia']
-
-    # Correção do escorregamento
-
-    # Correção da velocidade
-    dfc['RPM'] = (1 - dfc['D - Escorregamento']) * \
-        120*dfc['Frequencia']/dici['polos']
-
-    # Correção perdas joule do rotor
-    dfc['D - Pj2'] = dfc['D - Escorregamento'] * \
-        (dfc['Potencia'] - dfc['D - Perdas Ferro'] - dfc['D - Pj1'])
-
-    # Correção potência mecânica
-    dfc['D - Potencia Mecanica'] = dfc['D - Pj1'] + dfc['D - Pj2'] + \
-        dfc['D - Perdas Ferro'] + dfc['E - Perdas Atrito Vent.'] + \
-        dfc['D - Perdas Suplementares']
-
-    # Correção Rendimento
-    dfc['Rendimento'] = (dfc['Potencia'] - dfc['D - Pj1'] - dfc['D - Pj2'] - dfc['D - Perdas Ferro'] -
-                         dfc['E - Perdas Atrito Vent.'] - dfc['D - Perdas Suplementares'])/dfc['Potencia']
-
-    df[dici['aba_carga']] = dfc
-    return df
-'''
-
+############################################################
+# %%          INÍCIO DO PROGRAMA
+############################################################
 if __name__ == '__main__':
     a = IEEE112MetodoA()
-    print(a.incertezas)
     
-# %%
