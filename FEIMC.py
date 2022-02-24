@@ -13,90 +13,79 @@
 import numpy as np
 import pandas as pd
 from copy import deepcopy
-import dic_equip
 from funcoes import *
-import statsmodels.api as sm
 from datetime import date
+from dic_equip import (equipamentos_corrente,
+                       equipamentos_frequencia,
+                       equipamentos_potencia,
+                       equipamentos_resistencia,
+                       equipamentos_rpm,
+                       equipamentos_temperatura,
+                       equipamentos_tensao,
+                       equipamentos_torque)
 
 
 ############################################################
 # %%
 class FEIMC:
-    def __init__(self, dfs, **kwargs):
-        self.__dfs = dfs
+    def __init__(self, dfs, classe, **kwargs):
+        self._dfs = dfs
+        self._classe = classe
 
     @property
     def resultado(self):
         return self.__resultado
 
-    def remapeamento(self, wt_abas, wt_colunas={}):
-        print('#'*30)
-        print('ANTES')
-        print('#'*30)
-        print(wt_abas)
-        print(wt_colunas)
+    def remapeamento(self, wt_abas, wt_colunas={}):  # Corrigir
         wt_abas = {valor: chave for chave,
                    valor in wt_abas.items() if not(valor == '')}
-        wt_colunas = {valor[:valor.find('##')]: chave for chave, valor in wt_colunas.items() if not(valor == '')}
-        print('#'*30)
-        print('DEPOIS')
-        print('#'*30)
-        print(wt_abas)
-        print(wt_colunas)
+        wt_colunas = {valor[:valor.find(
+            '##')]: chave for chave, valor in wt_colunas.items() if not(valor == '')}
         for aba, df in self.__dfs.items():
             pass
 
-    def dataframes(self, inputs, abas, **kwargs):
-        dfs = pd.read_excel(self.__arquivo, sheet_name=None)
-        usadas = []
-        dici = {}
+    def incertezas(self, series, pontos, dici_bool, equipamentos, escalas_auto = True, **kwargs):
+        classe = self._classe
+        g_colunas = classe.incertezas()
+        funcoes = {'Corrente': equipamentos_corrente,
+                   'Tensao': equipamentos_tensao,
+                   'Potencia': equipamentos_potencia,
+                   'Frequencia': equipamentos_frequencia,
+                   'Resistencia': equipamentos_resistencia,
+                   'Torque': equipamentos_torque,
+                   'RPM': equipamentos_rpm,
+                   'Temperatura': equipamentos_temperatura}
+        
+        coluna = series.name
+        grandeza = ''
+        for chave, colunas in g_colunas:
+            if coluna in colunas:
+                grandeza = chave
+        
+        if grandeza == '':
+            series_mc = self.placebo(series, pontos)
+        
+        if dici_bool[grandeza]:
+            funcao = funcoes[grandeza]
+            series_mc = funcao(series, equipamentos, pontos, escalas_auto, **kwargs)
+        series_mc = series
+        return series_mc
 
-        inputs = {key: value.split(';') for (key, value) in inputs.items()}
-        for chave, df in dfs.items():
-            # Renomeando as colunas conforme padrão
-            mapa_colunas = dict(zip(df.columns, df.columns))
-            mapa_colunas.update(dict(zip(kwargs.values(), kwargs.keys())))
-            mapa_colunas = {k: mapa_colunas[k] for k in df.columns}
-            dfs[chave].rename(columns=mapa_colunas, inplace=True)
-
-            # Renomeando os dataframes conforme padrão
-            for key, valor in kwargs.items():
-                if chave == valor:
-                    dici[key] = df
-                    usadas.append(chave)
-        for usada in usadas:
-            del dfs[usada]
-        dfs.update(dici)
-        self.__dfs = dfs
-
-    def incertezas(self):
-        dfs = self.__dfs
-        for sheet, df in dfs.items():
-            df = df.astype(object)
-            # df = df.applymap(lambda x: np.ones(self.__pontos+1)*x)
-            for row in df.index:
-                df.at[row, :] = dic_equip.equipamentos(df.loc[row, :].to_dict(
-                ), self.__equipamentos, self.__bool_incertezas, self.__pontos)
-            dfs[sheet] = deepcopy(df)
-        self.__dfs = dfs
-
-    def sep_dataframes(self):
-        dici = {}
-        dici = {k: (self.__pontos + 1)*[None] for k in self.__dfs.keys()}
-        for chave in self.__dfs.keys():
-            for i in range(self.__pontos+1):
-                dici[chave][i] = self.__dfs[chave].applymap(lambda x: x[i])
-        self.__dfs = dici
+    def placebo(self, series, pontos):
+        series_mc = series.map(lambda x: [k for k in range(pontos+1)])
+        return series_mc
 
     def calculo(self, **kwargs):
-        dfs = self.__funcao()
+        metodo = self._classe
+        dfs_mc = metodo.calculo(dfs_mc, **kwargs)
 
 
 ############################################################
 # %%          INÍCIO DO PROGRAMA
 ############################################################
-if __name__ == '__main__':
-    dfs = pd.read_excel('Ensaios\\7 - MIT NOVA 15 cv (14-02-2019).xlsx', sheet_name=None)
+if True:
+    dfs = pd.read_excel(
+        'Ensaios\\7 - MIT NOVA 15 cv (14-02-2019).xlsx', sheet_name=None)
     abas = ['Resistências', 'de Carga', 'a Vazio']
     abas_excel = ['Ensaio_Vazio', 'Ensaio_Carga',
                   'Ensaio_Termico_Carga', 'Ensaio_Termico_Vazio']
@@ -111,14 +100,9 @@ if __name__ == '__main__':
               'Polos': 4,
               'Tensao Nominal': 380}
 
+if __name__ == '__main__':
     k = [dfs]
     classe = IEEE112MetodoB()
+    incertezas = classe.incertezas()
+    print(incertezas)
     dfs = classe.calculo(k, **kwargs)
-    for resultado in dfs:
-        with pd.ExcelWriter('Resultado.xlsx') as writer:
-            for chave, valor in resultado.items():
-                print('\n\n\n\n')
-                print(chave)
-                print(100*'#')
-                print(valor)
-                valor.to_excel(writer, sheet_name = chave, index = False)

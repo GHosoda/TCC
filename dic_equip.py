@@ -44,6 +44,33 @@ def melhor_escala(valor, escalas):
     return melhor_escala
 
 ##############################
+def distribuicoes(valor, retangulares:list, normais:list, incertezas:dict, bool_incertezas:dict, pontos:int):
+    ret = 1.4
+    parcial = np.ones(pontos+1)*valor
+    
+    for retangular in retangulares:
+        # if bool_incertezas[retangular]:
+        parcial += np.random.uniform(-incertezas[retangular]*ret, incertezas[retangular]*ret, pontos+1)
+    
+    for normal in normais:
+        # if bool_incertezas[normal]:
+        parcial += np.random.normal(valor, incertezas[normal], pontos+1)
+    
+    parcial[pontos] = valor
+    return parcial
+
+##############################
+class Equipamentos:
+    def __init__(self, series, equipamento, pontos, escala_auto, **kwargs):
+        self._series = series
+        self._equipamento = equipamento
+        self._pontos = pontos
+        self._escala_auto = escala_auto
+        
+    def tensao(self, **kwargs):
+        pass
+
+
 def equipamentos(linha: dict, equipamentos:dict, bool_incertezas:dict, pontos = 1000):
     dicionario_funcoes = {
         'Corrente': equipamentos_corrente,
@@ -68,20 +95,7 @@ def equipamentos(linha: dict, equipamentos:dict, bool_incertezas:dict, pontos = 
     return series  
 
 ##############################
-def distribuicoes(valor, retangulares:list, normais:list, incertezas:dict, bool_incertezas:dict, pontos:int):
-    ret = 1.4
-    parcial = np.ones(pontos+1)*valor
-    
-    for retangular in retangulares:
-        # if bool_incertezas[retangular]:
-        parcial += np.random.uniform(-incertezas[retangular]*ret, incertezas[retangular]*ret, pontos+1)
-    
-    for normal in normais:
-        # if bool_incertezas[normal]:
-        parcial += np.random.normal(valor, incertezas[normal], pontos+1)
-    
-    parcial[pontos] = valor
-    return parcial
+
 
 ##############################
 def equipamentos_tensao(valor: float, equipamento: str, bool_incertezas:dict, pontos: int, **kwargs):        
