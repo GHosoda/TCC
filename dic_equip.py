@@ -60,14 +60,54 @@ def distribuicoes(valor, retangulares:list, normais:list, incertezas:dict, bool_
     return parcial
 
 ##############################
-class Equipamentos:
-    def __init__(self, series, equipamento, pontos, escala_auto, **kwargs):
-        self._series = series
-        self._equipamento = equipamento
-        self._pontos = pontos
-        self._escala_auto = escala_auto
+class Sensores:
+    def __init__(self, df, coluna, grandeza, equipamentos, escalas_auto = True):
+        dicionario_funcoes = {
+        'Corrente': self.corrente,
+        'Tensao': self.tensao,
+        'Potencia': self.potencia,
+        'Frequencia': self.frequencia,
+        'Resistencia': self.resistencia,
+        'Temperatura': self.temperatura,
+        'Torque': self.torque,
+        'RPM': self.rpm}
+        self.df = df
+        self.equipamento = equipamentos[grandeza]
+        self.funcao = dicionario_funcoes[grandeza]
+        self.col_series = df[coluna]
+        escalas = []
+        if escalas_auto:
+            self.col_escala = df[coluna].map(lambda x: melhor_escala(x, escalas))
+        else:
+            colunas = list(df.columns)
+            indice = colunas.index(coluna)
+            indice += 1
+            self.col_escala = df[colunas[indice]]#pode dar erro se não tiver nada na direita
+        df_mc = self.funcao()
+        self.resultado = df_mc
+        
+    def corrente(self, **kwargs):
+        pass
         
     def tensao(self, **kwargs):
+        pass
+    
+    def potencia(self, **kwargs):
+        pass
+    
+    def frequencia(self, **kwargs):
+        pass
+    
+    def resistencia(self, **kwargs):
+        pass
+    
+    def temperatura(self, **kwargs):
+        pass
+    
+    def torque(self, **kwargs):
+        pass
+    
+    def rpm(self, **kwargs):
         pass
 
 
@@ -98,7 +138,7 @@ def equipamentos(linha: dict, equipamentos:dict, bool_incertezas:dict, pontos = 
 
 
 ##############################
-def equipamentos_tensao(valor: float, equipamento: str, bool_incertezas:dict, pontos: int, **kwargs):        
+def equipamentos_tensao(valor: float, equipamento: str,  pontos: int, **kwargs):        
     #Inicialização valores
     retangulares = []
     normais = []
@@ -135,7 +175,7 @@ def equipamentos_tensao(valor: float, equipamento: str, bool_incertezas:dict, po
             'Incerteza Resolução': 0
             }
         
-    return distribuicoes(valor, retangulares, normais, incertezas, bool_incertezas, pontos)
+    return distribuicoes(valor, retangulares, normais, incertezas, pontos)
 
 ##############################
 def equipamentos_corrente(valor: float, equipamento: str, bool_incertezas:dict, pontos: int, **kwargs):
