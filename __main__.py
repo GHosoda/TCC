@@ -29,7 +29,6 @@ from FEIMC import FEIMC
 ############################################################
 # %%                CRIAÇÃO DAS CLASSES
 ############################################################
-# %%
 class Plot:
     def __init__(self, dfs, tipo_plot):
         self.__dfs = dfs

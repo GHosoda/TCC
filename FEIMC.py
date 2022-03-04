@@ -10,12 +10,16 @@
 ############################################################
 # %%
 #from PySide2 import QtCore
+from os import path
 import numpy as np
 import pandas as pd
 from copy import deepcopy
 from funcoes import *
 from datetime import date
 from dic_equip import Sensores
+from scipy import stats
+import seaborn as sns
+from functools import partial
 
 
 ############################################################
@@ -60,6 +64,87 @@ class FEIMC:
     def calculo(self, **kwargs):
         metodo = self._classe
         dfs_mc = metodo.calculo(dfs_mc, **kwargs)
+        
+    def list2df(self, lista):
+        dfs = deepcopy(lista[0])
+        pontos = len(lista) - 1
+        for aba, df in dfs.items():
+            for coluna in df.columns:
+                dfs[aba][coluna] = dfs[aba][coluna].astype('object')
+                for index in df.index:
+                    aux = []
+                    for i in range(pontos):
+                        aux.append(lista[i][aba].loc[index, coluna])
+                    dfs[aba].at[index, coluna] = deepcopy(aux)
+        return dfs
+        
+    def saidas(self, lista, prints):
+        dfs = self.list2df(self, lista)
+        df = dfs['Resultado']
+        x = 'Potencia [pu]'
+        y = 'Rendimento'
+        
+        #Calculo dos dataframes de saída
+        dados = {'desvio_padrao': df.applymap(lambda x: np.std(x)),
+                 'max_min': [df.applymap(lambda x: np.max(x)), df.applymap(lambda x: np.min(x))],
+                 'media': df.applymap(lambda x: np.mean(x)),
+                 'mediana': df.applymap(lambda x: np.median(x)),
+                 'moda': df.applymap(lambda x: stats.mode(x)),
+                 'quartis': [df.applymap(lambda x: stats.scoreatpercentile(x, 25)), df.applymap(lambda x: stats.scoreatpercentile(x, 75))],
+                 'variancia': df.applymap(lambda x: np.var(x))}
+        
+        nomes = {'max_min': ['máximo', 'mínimo'],
+                 'quartis': ['1_4', '3_4']}
+        
+        #Salvar os dataframes
+        with pd.ExcelWriter('Resumo.xlsx') as writer:
+            for chave, valor in dados.items():
+                if prints[chave]:
+                    if isinstance(valor, list):
+                        for i, pedaco in enumerate(valor):
+                            pedaco.to_excel(writer, nomes[chave][i])
+                    else:
+                        valor.to_excel(writer, chave)
+                         
+        #Configuração plots
+        df_plots = df[[x, y]]
+        df_plots[x] = df_plots[x].map(lambda k: np.mean(k))
+        eixo_y = list(df_plots[y])
+        yy = []
+        tamanho = len(eixo_y[0]) 
+        list_x = list(df_plots[x])
+        eixo_x = [f'{x:.3f}' for x in list_x]
+        eixo_x = [[x]*tamanho for x in eixo_x]
+        xx = []
+        
+        for i in range(len(eixo_x)):
+            for j in range(tamanho):
+                xx.append(eixo_x[i][j])
+                yy.append(eixo_y[i][j])
+        
+        dados = {x: xx, y: yy}
+        dados = pd.DataFrame(dados)
+        
+        absolute_difference = lambda lista : abs(lista - 1)
+        prox_nominal =  f'{min(list_x , key=absolute_difference):.3f}'
+        dados_nom = dados[dados[x] == prox_nominal]
+        
+        plots = {'boxplot': partial(sns.boxplot, x = x, y = y, data = dados),
+                 'histograma': partial(sns.histplot, x = x, y = y, data = dados, element = 'poly'),
+                 'violino': partial(sns.violinplot, x = x, y = y, data = dados, inner = 'stick'),
+                 'histograma_nominal': partial(sns.histplot, x = y, y = x, data = dados_nom, kde = True)}
+        
+        ax = plots['histograma_nominal']  
+        
+        #Salvar os plots
+        for chave, valor in plots.items():
+            if prints[chave]:
+                ax = plots[chave]
+                plot = ax()
+                local = path.join('Plots', f'{chave}.svg')
+                plot.figure.savefig(local)
+
+        return dados
 
 
 ############################################################
@@ -81,10 +166,23 @@ if True:
               'Potencia Nominal': 11000,
               'Polos': 4,
               'Tensao Nominal': 380}
+    
+    prints = {'boxplot': True,
+              'desvio_padrao': False,
+              'histograma': False,
+              'histograma_nominal': False,
+              'max_min': True,
+              'media': True,
+              'mediana': False,
+              'moda': False,
+              'quartis': False,
+              'variancia': True,
+              'violino': True}
 
 if __name__ == '__main__':
-    k = [dfs]
+    k = [dfs, dfs, dfs]
     classe = IEEE112MetodoB()
     incertezas = classe.incertezas()
-    print(incertezas)
+    #print(incertezas)
     dfs = classe.calculo(k, **kwargs)
+    dfs2 = FEIMC.saidas(FEIMC, dfs, prints)
